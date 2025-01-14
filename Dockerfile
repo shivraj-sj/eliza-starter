@@ -4,7 +4,7 @@ FROM node:23.3.0-slim AS builder
 # Install pnpm globally and install necessary build tools
 RUN npm install -g pnpm@9.15.1 
 RUN apt-get update && \
-    apt-get install -y git python3 make g++ && \
+    apt-get install -y git python3 make g++ vim && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -20,9 +20,10 @@ COPY pnpm-lock.yaml ./
 COPY tsconfig.json ./
 
 # Copy the rest of the application code
-COPY ./src ./src
-COPY ./characters ./characters
-COPY ./.env ./
+COPY src ./src
+COPY characters ./characters
+COPY scripts ./scripts
+# COPY ./.env ./
 
 # Install dependencies and build the project
 RUN pnpm i
@@ -44,12 +45,14 @@ COPY --from=builder /app/package.json /app/
 COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/src /app/src
 COPY --from=builder /app/characters /app/characters
-COPY --from=builder /app/.env /app/
+# COPY --from=builder /app/.env /app/
 COPY --from=builder /app/dist /app/dist
 COPY --from=builder /app/tsconfig.json /app/
 COPY --from=builder /app/pnpm-lock.yaml /app/
+COPY --from=builder /app/scripts /app/scripts
 
 EXPOSE 3000
 # Set the command to run the application
-CMD ["pnpm", "start", "--non-interactive"]
+# CMD ["pnpm", "start", "--non-interactive"]
 # CMD ["node", "dist/index.js"]
+CMD ["/bin/bash"]
